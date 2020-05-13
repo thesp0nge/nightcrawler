@@ -16,14 +16,14 @@ from threading import Thread
 from logging.handlers import WatchedFileHandler
 
 
-from progress.bar import Bar
+from atpbar import atpbar
 from collections import deque
 from bs4 import BeautifulSoup
 from urllib.parse import urlsplit
 from urllib.parse import urlparse
 
 __version__="0.1"
-FORMATTER = logging.Formatter("%(asctime)s — %(name)s — %(levelname)s — %(message)s")
+FORMATTER = logging.Formatter("%(asctime)s - [%(threadName)s] — %(name)s — %(levelname)s — %(message)s")
 LOG_FILE = "nightcrawler.log"
 
 def get_console_handler():
@@ -44,7 +44,7 @@ def get_logger(logger_name):
    logger.propagate = False
    return logger
 
-def crawler(url: str, ofile: str, count:int, form_pollution:bool, ignore_cert:bool) -> int:
+def crawler(url: str, ofile: str, count:int, form_pollution:bool, ignore_cert:bool, name:str) -> int:
     '''
     Crawl and pollute website
       
@@ -76,19 +76,18 @@ def crawler(url: str, ofile: str, count:int, form_pollution:bool, ignore_cert:bo
             processed_urls.add(url) 
             my_logger.info("Processing %s" % url)
 
-            with Bar('Processing', max=count) as bar:
-                for x in range(0, count):
-                    my_logger.debug(".")
-                    try:    
-                        with warnings.catch_warnings():
-                            warnings.simplefilter("ignore")
-                            response = s.get(url)
-                    except(requests.exceptions.MissingSchema, requests.exceptions.ConnectionError, requests.exceptions.InvalidURL, requests.exceptions.InvalidSchema) as e:
-                        broken_urls.add(url)    
-                        my_logger.warning(url+" added to broken url")
-                        my_logger.warning(str(e))
-                        continue
-                    bar.next()
+            # for x in range(0, count):
+            for x in atpbar(range(0, count), name=name):
+                my_logger.debug(".")
+                try:    
+                    with warnings.catch_warnings():
+                        warnings.simplefilter("ignore")
+                        response = s.get(url)
+                except(requests.exceptions.MissingSchema, requests.exceptions.ConnectionError, requests.exceptions.InvalidURL, requests.exceptions.InvalidSchema) as e:
+                    broken_urls.add(url)    
+                    my_logger.warning(url+" added to broken url")
+                    my_logger.warning(str(e))
+                    continue
 
             parts = urlsplit(url)
             base = "{0.netloc}".format(parts)
@@ -159,7 +158,8 @@ def main(argv):
     
     threads = []
     for ii in range(0, t):
-        process=Thread(target=crawler, args=[url, None, count, pollution, True])
+        name='thread {}'.format(ii)
+        process=Thread(target=crawler, args=[url, None, count, pollution, True, name])
         process.daemon = True
         process.start()
         threads.append(process)

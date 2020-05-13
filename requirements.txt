@@ -2,4 +2,4 @@ requests
 beautifulsoup4
 lxml
 coloredlogs
-progress
+atpbar
