@@ -11,6 +11,7 @@ import requests
 import argparse
 import sys
 import coloredlogs, logging
+from logging.handlers import WatchedFileHandler
 
 
 from collections import deque
@@ -19,6 +20,26 @@ from urllib.parse import urlsplit
 from urllib.parse import urlparse
 
 __version__="0.1"
+FORMATTER = logging.Formatter("%(asctime)s — %(name)s — %(levelname)s — %(message)s")
+LOG_FILE = "nightcrawler.log"
+
+def get_console_handler():
+   console_handler = logging.StreamHandler(sys.stdout)
+   console_handler.setFormatter(FORMATTER)
+   return console_handler
+def get_file_handler():
+   file_handler = WatchedFileHandler(LOG_FILE)
+   file_handler.setFormatter(FORMATTER)
+   return file_handler
+
+def get_logger(logger_name):
+   logger = logging.getLogger(logger_name)
+   logger.setLevel(logging.DEBUG) # better to have too much log than not enough
+   logger.addHandler(get_console_handler())
+   logger.addHandler(get_file_handler())
+   # with this pattern, it's rarely necessary to propagate the error up to parent
+   logger.propagate = False
+   return logger
 
 def crawler(url: str, ofile: str, count:int, form_pollution:bool, ignore_cert:bool) -> int:
     '''
@@ -57,8 +78,8 @@ def crawler(url: str, ofile: str, count:int, form_pollution:bool, ignore_cert:bo
                     response = s.get(url)
             except(requests.exceptions.MissingSchema, requests.exceptions.ConnectionError, requests.exceptions.InvalidURL, requests.exceptions.InvalidSchema) as e:
                 broken_urls.add(url)    
-                logging.warning(url+" added to broken url")
-                logging.warning(str(e))
+                my_logger.warning(url+" added to broken url")
+                my_logger.warning(str(e))
                 continue
 
             parts = urlsplit(url)
@@ -109,7 +130,10 @@ def main(argv):
     parser.add_argument('--count', '-c', default=1, help='the number of times the crawler will get every url')
     parser.add_argument('--form-pollution', dest='pollution', action='store_true', help="pollute forms with bogus data")
     parser.add_argument('--no-form-pollution', dest='pollution', action='store_false', help="be fair with forms and not submit any data")
+
+    parser.add_argument('--verbose', '-V', dest='verbose', action='store_true', help="be verbose")
     parser.set_defaults(pollution=False)
+    parser.set_defaults(verbose=False)
     parser.add_argument('--version', action='version', version='%(prog)s {version}'.format(version=__version__))
 
 
@@ -118,9 +142,16 @@ def main(argv):
     count = args.count
     pollution = args.pollution 
 
+    if args.verbose:
+        my_logger.setLevel(logging.DEBUG)
+
+    my_logger.debug(count)
+
     crawler(url, None, count, pollution, True)
 
 if __name__ == "__main__":
+    my_logger=get_logger("nigthcrawler")
+    my_logger.setLevel(logging.INFO)
     coloredlogs.install()
     main(sys.argv[1:])
         
