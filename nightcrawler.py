@@ -14,6 +14,7 @@ import coloredlogs, logging
 from logging.handlers import WatchedFileHandler
 
 
+from progress.bar import Bar
 from collections import deque
 from bs4 import BeautifulSoup
 from urllib.parse import urlsplit
@@ -71,16 +72,21 @@ def crawler(url: str, ofile: str, count:int, form_pollution:bool, ignore_cert:bo
         while len(new_urls): 
             url = new_urls.popleft()    
             processed_urls.add(url) 
-            print("Processing %s" % url)
-            try:    
-                with warnings.catch_warnings():
-                    warnings.simplefilter("ignore")
-                    response = s.get(url)
-            except(requests.exceptions.MissingSchema, requests.exceptions.ConnectionError, requests.exceptions.InvalidURL, requests.exceptions.InvalidSchema) as e:
-                broken_urls.add(url)    
-                my_logger.warning(url+" added to broken url")
-                my_logger.warning(str(e))
-                continue
+            my_logger.info("Processing %s" % url)
+
+            with Bar('Prorcessing', max=count) as bar:
+                for x in range(0, count):
+                    my_logger.debug(".")
+                    try:    
+                        with warnings.catch_warnings():
+                            warnings.simplefilter("ignore")
+                            response = s.get(url)
+                    except(requests.exceptions.MissingSchema, requests.exceptions.ConnectionError, requests.exceptions.InvalidURL, requests.exceptions.InvalidSchema) as e:
+                        broken_urls.add(url)    
+                        my_logger.warning(url+" added to broken url")
+                        my_logger.warning(str(e))
+                        continue
+                    bar.next()
 
             parts = urlsplit(url)
             base = "{0.netloc}".format(parts)
@@ -127,7 +133,7 @@ def main(argv):
     text="A python program that crawls a website and tries to stress it, polluting forms with bogus data"
     parser = argparse.ArgumentParser(prog='nightcrawler', description=text, usage='%(prog)s [options]', epilog="Please make sure you're allowed to crawler and stress target website.")
     parser.add_argument('--url', '-u', required=True, help='the url you want to start to crawl from')
-    parser.add_argument('--count', '-c', default=1, help='the number of times the crawler will get every url')
+    parser.add_argument('--count', '-c', type=int, default=1, help='the number of times the crawler will get every url')
     parser.add_argument('--form-pollution', dest='pollution', action='store_true', help="pollute forms with bogus data")
     parser.add_argument('--no-form-pollution', dest='pollution', action='store_false', help="be fair with forms and not submit any data")
 
