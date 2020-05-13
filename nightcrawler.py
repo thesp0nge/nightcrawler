@@ -11,6 +11,8 @@ import requests
 import argparse
 import sys
 import coloredlogs, logging
+from threading import Thread
+
 from logging.handlers import WatchedFileHandler
 
 
@@ -74,7 +76,7 @@ def crawler(url: str, ofile: str, count:int, form_pollution:bool, ignore_cert:bo
             processed_urls.add(url) 
             my_logger.info("Processing %s" % url)
 
-            with Bar('Prorcessing', max=count) as bar:
+            with Bar('Processing', max=count) as bar:
                 for x in range(0, count):
                     my_logger.debug(".")
                     try:    
@@ -134,6 +136,7 @@ def main(argv):
     parser = argparse.ArgumentParser(prog='nightcrawler', description=text, usage='%(prog)s [options]', epilog="Please make sure you're allowed to crawler and stress target website.")
     parser.add_argument('--url', '-u', required=True, help='the url you want to start to crawl from')
     parser.add_argument('--count', '-c', type=int, default=1, help='the number of times the crawler will get every url')
+    parser.add_argument('--threads', '-t', type=int, default=1, help='the number of concurrents thread. Useful to stress test the website')
     parser.add_argument('--form-pollution', dest='pollution', action='store_true', help="pollute forms with bogus data")
     parser.add_argument('--no-form-pollution', dest='pollution', action='store_false', help="be fair with forms and not submit any data")
 
@@ -147,13 +150,23 @@ def main(argv):
     url = args.url
     count = args.count
     pollution = args.pollution 
+    t = args.threads
 
     if args.verbose:
         my_logger.setLevel(logging.DEBUG)
 
     my_logger.debug(count)
+    
+    threads = []
+    for ii in range(0, t):
+        process=Thread(target=crawler, args=[url, None, count, pollution, True])
+        process.daemon = True
+        process.start()
+        threads.append(process)
 
-    crawler(url, None, count, pollution, True)
+    for process in threads:
+        process.join()
+    #crawler(url, None, count, pollution, True)
 
 if __name__ == "__main__":
     my_logger=get_logger("nigthcrawler")
