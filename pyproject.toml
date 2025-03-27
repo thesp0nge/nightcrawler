@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 # --- Core Metadata ---
-name = "nightcrawl
+name = "nightcrawler"
 version = "0.3.0" 
 description = "A mitmproxy addon for background passive analysis, crawling, and basic active scanning."
 readme = "README.md"
