@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 # --- Core Metadata ---
-name = "nightcrawler"
+name = "nightcrawler-mitm"
 version = "0.3.0" 
 description = "A mitmproxy addon for background passive analysis, crawling, and basic active scanning."
 readme = "README.md"
@@ -46,9 +46,9 @@ dependencies = [
 
 # --- Project URLs (Optional but recommended) ---
 [project.urls]
-"Homepage" = "https://github.com/thesp0nge/nightcrawler"
-"Repository" = "https://github.com/thesp0nge/nightcrawler"
-"Bug Tracker" = "https://github.com/thesp0nge/nightcrawler/issues"
+"Homepage" = "https://github.com/thesp0nge/nightcrawler-mitm"
+"Repository" = "https://github.com/thesp0nge/nightcrawler-mitm"
+"Bug Tracker" = "https://github.com/thesp0nge/nightcrawler-mitm/issues"
 
 # --- Console Script Entry Point ---
 # Defines the 'nightcrawler' command available after installation

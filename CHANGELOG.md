@@ -107,5 +107,6 @@ and this project adheres to
 - Support for `mitmproxy` options like `--ssl-insecure` passed through via the
   runner.
 
-[Unreleased]: https://github.com/thesp0nge/nightcrawler/compare/v0.3.0...HEAD
-[0.3.0]: https://github.com/thesp0nge/nightcrawler/compare/v0.2.0...v0.3.0
+[Unreleased]:
+  https://github.com/thesp0nge/nightcrawler-mitm/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/thesp0nge/nightcrawler-mitm/compare/v0.2.0...v0.3.0
